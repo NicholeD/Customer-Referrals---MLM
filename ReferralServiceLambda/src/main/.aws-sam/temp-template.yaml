@@ -1,0 +1,11 @@
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 300
+      MemorySize: 1088
+      Handler: com.kenzie.marketing.referral.service.lambda.GetDirectReferrals
+      CodeUri: /Users/nicholedavidson/kenzie/ata-unit-five-project-NicholeD/ReferralServiceLambda
+      Runtime: java11
+      Architectures:
+        - x86_64
