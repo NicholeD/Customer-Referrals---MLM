@@ -81,7 +81,7 @@ public class CustomerService {
         record.setName(createCustomerRequest.getName());
         record.setDateCreated(LocalDateTime.now().toString());
 
-        if (createCustomerRequest.getReferrerId() != null) {
+        if (createCustomerRequest.getReferrerId().isPresent()) {
             if (!customerRepository.findById(createCustomerRequest.getReferrerId().get()).isPresent()) {
                 return null;
             }
