@@ -81,7 +81,7 @@ public class CustomerService {
         record.setName(createCustomerRequest.getName());
         record.setDateCreated(LocalDateTime.now().toString());
 
-        if (createCustomerRequest.getReferrerId().isPresent()) {
+        if (createCustomerRequest.getReferrerId() != null) {
             if (!customerRepository.findById(createCustomerRequest.getReferrerId().get()).isPresent()) {
                 return null;
             }
@@ -192,8 +192,11 @@ public class CustomerService {
         customerResponse.setId(record.getId());
         customerResponse.setReferrerId(record.getReferrerId());
         customerResponse.setDateJoined(record.getDateCreated());
-        Optional<CustomerRecord> referrerRecord = customerRepository.findById(record.getReferrerId());
-        customerResponse.setReferrerName(referrerRecord.get().getName());
+
+        if (record.getReferrerId() != null) {
+            CustomerRecord referrerRecord = customerRepository.findById(record.getReferrerId()).get();
+            customerResponse.setReferrerName(referrerRecord.getName());
+        }
 
         return customerResponse;
     }

@@ -5,6 +5,7 @@ import com.kenzie.marketing.application.controller.model.CustomerResponse;
 import com.kenzie.marketing.application.repositories.CustomerRepository;
 import com.kenzie.marketing.application.repositories.model.CustomerRecord;
 
+import com.kenzie.marketing.referral.model.Referral;
 import com.kenzie.marketing.referral.model.client.ReferralServiceClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,12 +14,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.exceptions.base.MockitoAssertionError;
 import org.springframework.web.server.ResponseStatusException;
+import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.UUID.randomUUID;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -195,7 +199,7 @@ public class CustomerServiceTest {
 
         // THEN
         try {
-            verify(customerRepository, never()).save(Matchers.any());
+            verify(customerRepository, never()).save(any());
         } catch(MockitoAssertionError error) {
             throw new MockitoAssertionError("There should not be a call to .save() if the customer is not found in the database. - " + error);
         }
@@ -207,5 +211,46 @@ public class CustomerServiceTest {
      *  ------------------------------------------------------------------------ **/
 
     // Write additional tests here
+    //TODO - delete test is failing
+//    @Test
+//    void deleteCustomer_customer_does_not_exist() {
+//        //GIVEN
+//        CreateCustomerRequest request = new CreateCustomerRequest();
+//        request.setName(RandomStringUtils.randomAlphabetic(5));
+//        CustomerResponse response = customerService.addNewCustomer(request);
+//
+//        //WHEN
+//        Assertions.assertTrue(customerRepository.findById(response.getId()).isPresent());
+//        customerService.deleteCustomer(response.getId());
+//
+//        //THEN
+//        Assertions.assertFalse(customerRepository.findById(response.getId()).isPresent());
+//    }
+
+    @Test
+    void getReferrals() {
+        //GIVEN
+        String customerId = randomUUID().toString();
+        String referralId = randomUUID().toString();
+        CustomerRecord record = new CustomerRecord();
+        record.setId(referralId);
+        record.setName(RandomStringUtils.randomAlphabetic(5));
+        record.setDateCreated(LocalDateTime.now().toString());
+
+        Referral referral = new Referral(customerId,
+                referralId,
+                LocalDateTime.now().toString());
+        List<Referral> referrals = new ArrayList<>();
+        referrals.add(referral);
+
+        when(referralServiceClient.getDirectReferrals(any())).thenReturn(referrals);
+        when(customerRepository.findById(any())).thenReturn(Optional.of(record));
+
+        //WHEN
+        List<CustomerResponse> responses = customerService.getReferrals(customerId);
+
+        //THEN
+        Assertions.assertTrue(!responses.isEmpty());
+    }
 
 }
