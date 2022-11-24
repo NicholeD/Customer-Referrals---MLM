@@ -15,11 +15,13 @@ import javax.inject.Inject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ReferralService {
 
     private ReferralDao referralDao;
     private ExecutorService executor;
+    private ReferralConverter referralConverter = new ReferralConverter();
 
     @Inject
     public ReferralService(ReferralDao referralDao) {
@@ -51,8 +53,13 @@ public class ReferralService {
         List<ReferralRecord> records = referralDao.findByReferrerId(customerId);
 
         // Task 1 Code Here
+        // Find the referral records
+        // Convert the records into referral objects
+        // Return a list of referrals
 
-        return null;
+        return records.stream()
+                .map(record -> referralConverter.fromRecordToReferral(record))
+                .collect(Collectors.toList());
     }
 
 
