@@ -37,13 +37,29 @@ public class ReferralService {
 
     public List<LeaderboardEntry> getReferralLeaderboard() {
         // Task 3 Code Here
+        
         return null;
     }
 
     public CustomerReferrals getCustomerReferralSummary(String customerId) {
         CustomerReferrals referrals = new CustomerReferrals();
+        List<ReferralRecord> firstReferralRecords = referralDao.findByReferrerId(customerId);
+        Integer firstLevel = firstReferralRecords.size();
+        Integer secondLevel = 0;
+        Integer thirdLevel = 0;
 
-        // Task 2 Code Here
+        for (ReferralRecord firstLevelRecord : firstReferralRecords) {
+            List<ReferralRecord> secondReferralRecords = referralDao.findByReferrerId(firstLevelRecord.getCustomerId());
+            secondLevel += secondReferralRecords.size();
+            for(ReferralRecord secondLevelRecord : secondReferralRecords) {
+                List<ReferralRecord> thirdReferralRecords = referralDao.findByReferrerId(secondLevelRecord.getCustomerId());
+                thirdLevel += thirdReferralRecords.size();
+            }
+        }
+
+        referrals.setNumFirstLevelReferrals(firstLevel);
+        referrals.setNumSecondLevelReferrals(secondLevel);
+        referrals.setNumThirdLevelReferrals(thirdLevel);
 
         return referrals;
     }
