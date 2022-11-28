@@ -37,7 +37,7 @@ public class ReferralService {
 
     public List<LeaderboardEntry> getReferralLeaderboard() {
         // Task 3 Code Here
-        
+
         return null;
     }
 
