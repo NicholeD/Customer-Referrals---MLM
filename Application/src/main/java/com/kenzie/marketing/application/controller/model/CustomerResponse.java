@@ -2,6 +2,7 @@ package com.kenzie.marketing.application.controller.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kenzie.marketing.application.repositories.model.CustomerRecord;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomerResponse {
@@ -20,6 +21,17 @@ public class CustomerResponse {
 
     @JsonProperty("referrerId")
     private String referrerId;
+
+    public CustomerResponse(CustomerRecord record) {
+        this.id = record.getId();
+        this.name = record.getName();
+        this.dateJoined = record.getDateCreated();
+        this.referrerId = record.getReferrerId();
+
+    }
+    public CustomerResponse() {
+
+    }
 
     public String getId() {
         return id;

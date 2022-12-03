@@ -187,11 +187,7 @@ public class CustomerService {
             return null;
         }
 
-        CustomerResponse customerResponse = new CustomerResponse();
-        customerResponse.setName(record.getName());
-        customerResponse.setId(record.getId());
-        customerResponse.setReferrerId(record.getReferrerId());
-        customerResponse.setDateJoined(record.getDateCreated());
+        CustomerResponse customerResponse = new CustomerResponse(record);
 
         if (record.getReferrerId() != null) {
             CustomerRecord referrerRecord = customerRepository.findById(record.getReferrerId()).get();

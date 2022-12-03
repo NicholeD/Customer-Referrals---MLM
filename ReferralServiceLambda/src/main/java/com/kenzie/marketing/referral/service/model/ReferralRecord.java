@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @DynamoDBTable(tableName = "Referral")
-public class ReferralRecord {
+public class  ReferralRecord {
 
     private String customerId;
     private String referrerId;
