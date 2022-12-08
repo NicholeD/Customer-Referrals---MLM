@@ -39,9 +39,9 @@ public class ReferralService {
     }
 
     public List<LeaderboardEntry> getReferralLeaderboard() {
-        TreeSet<LeaderboardEntry> top5Referrals = new TreeSet<>(Comparator.comparing(LeaderboardEntry::getNumReferrals).reversed());
+        TreeSet<LeaderboardEntry> top5Referrals = new TreeSet<>(Comparator.comparing(LeaderboardEntry::getNumReferrals));
 
-        List<ReferralRecord> withoutReferrers = referralDao.findUsersWithoutReferrerId();
+        List<ReferralRecord> withoutReferrers = this.referralDao.findUsersWithoutReferrerId();
 
         for (ReferralRecord record : withoutReferrers) {
             LeaderboardEntry entry = new LeaderboardEntry(getDirectReferrals(record.getCustomerId()).size(),
@@ -56,21 +56,20 @@ public class ReferralService {
 
     public CustomerReferrals getCustomerReferralSummary(String customerId) {
         CustomerReferrals referrals = new CustomerReferrals();
-        List<ReferralRecord> firstReferralRecords = referralDao.findByReferrerId(customerId);
-        Integer firstLevel = firstReferralRecords.size();
-        Integer secondLevel = 0;
-        Integer thirdLevel = 0;
+        List<ReferralRecord> firstRefRecords = referralDao.findByReferrerId(customerId);
+        referrals.setNumFirstLevelReferrals(firstRefRecords.size());
+        int secondLevel = 0;
+        int thirdLevel = 0;
 
-        for (ReferralRecord firstLevelRecord : firstReferralRecords) {
-            List<ReferralRecord> secondReferralRecords = referralDao.findByReferrerId(firstLevelRecord.getCustomerId());
-            secondLevel += secondReferralRecords.size();
-            for(ReferralRecord secondLevelRecord : secondReferralRecords) {
-                List<ReferralRecord> thirdReferralRecords = referralDao.findByReferrerId(secondLevelRecord.getCustomerId());
-                thirdLevel += thirdReferralRecords.size();
+        for (ReferralRecord firstRecord : firstRefRecords) {
+            List<ReferralRecord> secondRefRecords = referralDao.findByReferrerId(firstRecord.getCustomerId());
+            secondLevel += secondRefRecords.size();
+            for(ReferralRecord secondRecord : secondRefRecords) {
+                List<ReferralRecord> thirdRefRecords = referralDao.findByReferrerId(secondRecord.getCustomerId());
+                thirdLevel += thirdRefRecords.size();
             }
         }
 
-        referrals.setNumFirstLevelReferrals(firstLevel);
         referrals.setNumSecondLevelReferrals(secondLevel);
         referrals.setNumThirdLevelReferrals(thirdLevel);
 

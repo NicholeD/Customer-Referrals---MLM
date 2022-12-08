@@ -161,10 +161,12 @@ public class CustomerService {
      * @return
      */
     public List<LeaderboardUiEntry> getLeaderboard() {
+        List<LeaderboardEntry> leaderBoardEntries = referralServiceClient.getLeaderboard();
 
-        // Task 2 - Add your code here
-
-        return null;
+        return leaderBoardEntries.stream()
+                .filter(entry -> entry.getNumReferrals()>0)
+                .map(this::toLBUiEntry)
+                .collect(Collectors.toList());
     }
 
     /* -----------------------------------------------------------------------------------------------------------
@@ -202,6 +204,15 @@ public class CustomerService {
 
     private ReferralRequest toReferralRequest(CustomerRecord record) {
         return new ReferralRequest(record.getId(), record.getReferrerId());
+    }
+
+    private LeaderboardUiEntry toLBUiEntry(LeaderboardEntry entry) {
+        LeaderboardUiEntry lbUiEntry = new LeaderboardUiEntry();
+        lbUiEntry.setCustomerId(entry.getCustomerId());
+        lbUiEntry.setNumReferrals(entry.getNumReferrals());
+        lbUiEntry.setCustomerName(getCustomer(entry.getCustomerId()).getName());
+
+        return lbUiEntry;
     }
 
 }
