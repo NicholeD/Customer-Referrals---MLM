@@ -12,6 +12,9 @@ import com.kenzie.marketing.referral.service.model.ReferralRecord;
 
 import javax.inject.Inject;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.List;
@@ -36,9 +39,19 @@ public class ReferralService {
     }
 
     public List<LeaderboardEntry> getReferralLeaderboard() {
-        // Task 3 Code Here
+        TreeSet<LeaderboardEntry> top5Referrals = new TreeSet<>(Comparator.comparing(LeaderboardEntry::getNumReferrals).reversed());
 
-        return null;
+        List<ReferralRecord> withoutReferrers = referralDao.findUsersWithoutReferrerId();
+
+        for (ReferralRecord record : withoutReferrers) {
+            LeaderboardEntry entry = new LeaderboardEntry(getDirectReferrals(record.getCustomerId()).size(),
+                    record.getCustomerId());
+            top5Referrals.add(entry);
+        }
+
+        return top5Referrals.stream()
+                .limit(5)
+                .collect(Collectors.toList());
     }
 
     public CustomerReferrals getCustomerReferralSummary(String customerId) {
@@ -74,7 +87,7 @@ public class ReferralService {
         // Return a list of referrals
 
         return records.stream()
-                .map(record -> referralConverter.fromRecordToReferral(record))
+                .map(ReferralConverter::fromRecordToReferral)
                 .collect(Collectors.toList());
     }
 
