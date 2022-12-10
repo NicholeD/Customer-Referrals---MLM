@@ -4,49 +4,38 @@ import com.kenzie.marketing.referral.service.dependency.DaggerServiceComponent;
 
 import redis.clients.jedis.Jedis;
 
+import javax.inject.Inject;
 import java.util.Optional;
 
 public class CacheClient {
 
+    @Inject
     public CacheClient() {}
 
-    // Put your Cache Client Here
-
     public void setValue(String key, int seconds, String value) {
-        // Check for non-null key
         checkNonNullKey(key);
-        // Set the value in the cache
-        Jedis cache = DaggerServiceComponent.create().provideJedis();
+
+        try (Jedis cache = DaggerServiceComponent.create().provideJedis()) {
+            cache.setex(key, seconds, value);
+        };
     }
     public Optional<String> getValue(String key) {
-        // Check for non-null key
         checkNonNullKey(key);
-        // Retrieves the Optional values from the cache
+
         try (Jedis cache = DaggerServiceComponent.create().provideJedis()) {
             return Optional.ofNullable(cache.get(key));
         }
     }
-    public void invalidate(String key) {
-        // Check for non-null key
+    public Boolean invalidate(String key) {
         checkNonNullKey(key);
-        // Delete the key
+
+        try (Jedis cache = DaggerServiceComponent.create().provideJedis()) {
+            return cache.del(key) > 0;
+        }
     }
     private void checkNonNullKey(String key) {
-        // Ensure the key isn't null
         if (key == null) {
             throw new IllegalArgumentException("Key cannot be null");
-        // What should you do if the key *is* null?
     }
-
-    // Since Jedis is being used multithreaded, you MUST get a new Jedis instances and close it inside every method.
-    // Do NOT use a single instance across multiple of these methods
-
-    // Use Jedis in each method by doing the following:
-    // Jedis cache = DaggerServiceComponent.create().provideJedis();
-    // ... use the cache
-    // cache.close();
-
-    // Remember to check for null keys!
-
-    }
+  }
 }
