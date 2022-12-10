@@ -39,11 +39,11 @@ public class ReferralService {
     }
 
     public List<LeaderboardEntry> getReferralLeaderboard() {
-        List<ReferralRecord> withoutReferrers = this.referralDao.findUsersWithoutReferrerId();
+        List<ReferralRecord> withoutReferrers = referralDao.findUsersWithoutReferrerId();
 
         List<Future<List<LeaderboardEntry>>> threadFutures = new ArrayList<>();
 
-        TreeSet<LeaderboardEntry> top5ReferralTree = new TreeSet<>(Comparator.comparing(LeaderboardEntry::getNumReferrals).reversed());
+        TreeSet<LeaderboardEntry> top5ReferralTree = new TreeSet<>(Comparator.comparingInt(LeaderboardEntry::getNumReferrals).reversed());
 
         for(ReferralRecord record : withoutReferrers) {
             ReferralTask task = new ReferralTask(record, this);
@@ -79,13 +79,11 @@ public class ReferralService {
             thirdRefRecords.addAll(getDirectReferrals(secondRef.getCustomerId()));
         }
 
-
         referrals.setNumSecondLevelReferrals(secondRefRecords.size());
         referrals.setNumThirdLevelReferrals(thirdRefRecords.size());
 
         return referrals;
     }
-
 
     public List<Referral> getDirectReferrals(String customerId) {
         List<ReferralRecord> records = referralDao.findByReferrerId(customerId);

@@ -20,7 +20,7 @@ public class ReferralTask implements Callable {
     }
     @Override
     public List<LeaderboardEntry> call() throws Exception {
-        TreeSet<LeaderboardEntry> top5ReferralTree = new TreeSet<>(Comparator.comparing(LeaderboardEntry::getNumReferrals).reversed());
+        TreeSet<LeaderboardEntry> top5ReferralTree = new TreeSet<>(Comparator.comparingInt(LeaderboardEntry::getNumReferrals).reversed());
 
         top5ReferralTree.add(new LeaderboardEntry(referralService.getCustomerReferralSummary(
                 record.getCustomerId()).getNumFirstLevelReferrals(),
