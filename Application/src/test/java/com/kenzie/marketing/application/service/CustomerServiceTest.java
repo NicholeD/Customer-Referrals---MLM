@@ -209,23 +209,23 @@ public class CustomerServiceTest {
     /** ------------------------------------------------------------------------
      *  customerService.deleteCustomer
      *  ------------------------------------------------------------------------ **/
+    @Test
+    void deleteCustomer_customer_does_not_exist() {
+        //GIVEN
+        CustomerRecord record = new CustomerRecord();
+        record.setId(randomUUID().toString());
+        record.setName("test");
+        record.setReferrerId(randomUUID().toString());
+        record.setDateCreated(LocalDateTime.now().toString());
 
-    // Write additional tests here
-    //TODO - delete test is failing
-//    @Test
-//    void deleteCustomer_customer_does_not_exist() {
-//        //GIVEN
-//        CreateCustomerRequest request = new CreateCustomerRequest();
-//        request.setName(RandomStringUtils.randomAlphabetic(5));
-//        CustomerResponse response = customerService.addNewCustomer(request);
-//
-//        //WHEN
-//        Assertions.assertTrue(customerRepository.findById(response.getId()).isPresent());
-//        customerService.deleteCustomer(response.getId());
-//
-//        //THEN
-//        Assertions.assertFalse(customerRepository.findById(response.getId()).isPresent());
-//    }
+        //WHEN
+        customerRepository.save(record);
+        customerService.deleteCustomer(record.getId());
+
+        //THEN
+        verify(customerRepository).deleteById(record.getId());
+        Assertions.assertNull(customerRepository.findById(record.getId()));
+    }
 
     @Test
     void getReferrals() {
@@ -252,5 +252,4 @@ public class CustomerServiceTest {
         //THEN
         Assertions.assertTrue(!responses.isEmpty());
     }
-
 }
