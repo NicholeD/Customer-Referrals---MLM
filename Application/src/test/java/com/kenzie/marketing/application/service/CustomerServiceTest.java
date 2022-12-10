@@ -230,26 +230,29 @@ public class CustomerServiceTest {
     @Test
     void getReferrals() {
         //GIVEN
-        String customerId = randomUUID().toString();
-        String referralId = randomUUID().toString();
-        CustomerRecord record = new CustomerRecord();
-        record.setId(referralId);
-        record.setName(RandomStringUtils.randomAlphabetic(5));
-        record.setDateCreated(LocalDateTime.now().toString());
+        Referral referral= new Referral();
+        referral.setCustomerId(randomUUID().toString());
+        referral.setReferrerId(randomUUID().toString());
+        referral.setReferralDate(LocalDateTime.now().toString());
 
-        Referral referral = new Referral(customerId,
-                referralId,
-                LocalDateTime.now().toString());
+        CustomerRecord record = new CustomerRecord();
+        record.setId(referral.getCustomerId());
+        record.setName("test");
+        record.setReferrerId(referral.getReferrerId());
+        record.setDateCreated(referral.getReferralDate());
+
         List<Referral> referrals = new ArrayList<>();
         referrals.add(referral);
 
-        when(referralServiceClient.getDirectReferrals(any())).thenReturn(referrals);
-        when(customerRepository.findById(any())).thenReturn(Optional.of(record));
+        when(referralServiceClient.getDirectReferrals(record.getReferrerId())).thenReturn(referrals);
+        when(customerRepository.findById(record.getReferrerId())).thenReturn(Optional.of(record));
+        when(customerRepository.existsById(record.getReferrerId())).thenReturn(true);
 
         //WHEN
-        List<CustomerResponse> responses = customerService.getReferrals(customerId);
+        List<CustomerResponse> responses = customerService.getReferrals(record.getReferrerId());
 
         //THEN
         Assertions.assertTrue(!responses.isEmpty());
+        Assertions.assertEquals(referral.getCustomerId(), responses.get(0).getId());
     }
 }
