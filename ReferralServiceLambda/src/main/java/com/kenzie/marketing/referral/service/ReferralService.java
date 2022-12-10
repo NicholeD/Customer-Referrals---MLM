@@ -9,15 +9,15 @@ import com.kenzie.marketing.referral.service.converter.ReferralConverter;
 import com.kenzie.marketing.referral.service.dao.ReferralDao;
 import com.kenzie.marketing.referral.service.exceptions.InvalidDataException;
 import com.kenzie.marketing.referral.service.model.ReferralRecord;
+import com.kenzie.marketing.referral.service.task.ReferralTask;
 
 import javax.inject.Inject;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ReferralService {
@@ -39,17 +39,26 @@ public class ReferralService {
     }
 
     public List<LeaderboardEntry> getReferralLeaderboard() {
-        TreeSet<LeaderboardEntry> top5Referrals = new TreeSet<>(Comparator.comparing(LeaderboardEntry::getNumReferrals));
-
         List<ReferralRecord> withoutReferrers = this.referralDao.findUsersWithoutReferrerId();
 
-        for (ReferralRecord record : withoutReferrers) {
-            LeaderboardEntry entry = new LeaderboardEntry(getDirectReferrals(record.getCustomerId()).size(),
-                    record.getCustomerId());
-            top5Referrals.add(entry);
+        List<Future<List<LeaderboardEntry>>> threadFutures = new ArrayList<>();
+
+        TreeSet<LeaderboardEntry> top5ReferralTree = new TreeSet<>(Comparator.comparing(LeaderboardEntry::getNumReferrals).reversed());
+
+        for(ReferralRecord record : withoutReferrers) {
+            ReferralTask task = new ReferralTask(record, this);
+            threadFutures.add(executor.submit(task));
         }
 
-        return top5Referrals.stream()
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(20, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Executor was interrupted " + e);
+        }
+
+        return top5ReferralTree.stream()
                 .limit(5)
                 .collect(Collectors.toList());
     }
@@ -58,20 +67,21 @@ public class ReferralService {
         CustomerReferrals referrals = new CustomerReferrals();
         List<ReferralRecord> firstRefRecords = referralDao.findByReferrerId(customerId);
         referrals.setNumFirstLevelReferrals(firstRefRecords.size());
-        int secondLevel = 0;
-        int thirdLevel = 0;
+
+        List<Referral> secondRefRecords = new ArrayList<>();
+        List<Referral> thirdRefRecords = new ArrayList<>();
 
         for (ReferralRecord firstRecord : firstRefRecords) {
-            List<ReferralRecord> secondRefRecords = referralDao.findByReferrerId(firstRecord.getCustomerId());
-            secondLevel += secondRefRecords.size();
-            for(ReferralRecord secondRecord : secondRefRecords) {
-                List<ReferralRecord> thirdRefRecords = referralDao.findByReferrerId(secondRecord.getCustomerId());
-                thirdLevel += thirdRefRecords.size();
-            }
+            secondRefRecords.addAll(getDirectReferrals(firstRecord.getCustomerId()));
         }
 
-        referrals.setNumSecondLevelReferrals(secondLevel);
-        referrals.setNumThirdLevelReferrals(thirdLevel);
+        for(Referral secondRef : secondRefRecords) {
+            thirdRefRecords.addAll(getDirectReferrals(secondRef.getCustomerId()));
+        }
+
+
+        referrals.setNumSecondLevelReferrals(secondRefRecords.size());
+        referrals.setNumThirdLevelReferrals(thirdRefRecords.size());
 
         return referrals;
     }
@@ -79,11 +89,6 @@ public class ReferralService {
 
     public List<Referral> getDirectReferrals(String customerId) {
         List<ReferralRecord> records = referralDao.findByReferrerId(customerId);
-
-        // Task 1 Code Here
-        // Find the referral records
-        // Convert the records into referral objects
-        // Return a list of referrals
 
         return records.stream()
                 .map(ReferralConverter::fromRecordToReferral)
