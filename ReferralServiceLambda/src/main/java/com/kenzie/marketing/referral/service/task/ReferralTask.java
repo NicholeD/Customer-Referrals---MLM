@@ -10,7 +10,7 @@ import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-public class ReferralTask implements Callable {
+public class ReferralTask implements Callable<List<LeaderboardEntry>> {
     private ReferralRecord record;
     private ReferralService referralService;
 

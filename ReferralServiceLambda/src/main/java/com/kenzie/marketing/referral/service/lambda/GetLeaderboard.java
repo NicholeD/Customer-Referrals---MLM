@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class GetLeaderboard implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -50,6 +51,10 @@ public class GetLeaderboard implements RequestHandler<APIGatewayProxyRequestEven
             return response
                     .withStatusCode(400)
                     .withBody(gson.toJson(e.errorPayload()));
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }

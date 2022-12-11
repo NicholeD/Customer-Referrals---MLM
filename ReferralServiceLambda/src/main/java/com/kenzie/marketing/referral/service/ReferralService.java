@@ -14,10 +14,7 @@ import com.kenzie.marketing.referral.service.task.ReferralTask;
 import javax.inject.Inject;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class ReferralService {
@@ -38,7 +35,7 @@ public class ReferralService {
         this.executor = executor;
     }
 
-    public List<LeaderboardEntry> getReferralLeaderboard() {
+    public List<LeaderboardEntry> getReferralLeaderboard() throws ExecutionException, InterruptedException {
         List<ReferralRecord> withoutReferrers = referralDao.findUsersWithoutReferrerId();
 
         List<Future<List<LeaderboardEntry>>> threadFutures = new ArrayList<>();
@@ -53,9 +50,13 @@ public class ReferralService {
         executor.shutdown();
 
         try {
-            executor.awaitTermination(20, TimeUnit.SECONDS);
+            executor.awaitTermination(60, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             throw new RuntimeException("Executor was interrupted " + e);
+        }
+
+        for (Future<List<LeaderboardEntry>> list : threadFutures) {
+            top5ReferralTree.addAll(list.get());
         }
 
         return top5ReferralTree.stream()
